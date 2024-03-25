@@ -12,16 +12,22 @@ import android.widget.Button;
 
 public class MainActivity extends AppCompatActivity {
     Button buttonEnviaMensagem, buttonLigacao,buttonSite,
-    buttonMapa, buttonNavegacao;
+    buttonMapa, buttonNavegacao, buttonTirarFoto;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        buttonTirarFoto = (Button)findViewById(R.id.buttonTirarFoto);
        buttonEnviaMensagem = (Button) findViewById(R.id.buttonTelaMensagem);
        buttonLigacao = (Button)findViewById(R.id.buttonLigacao);
        buttonSite = (Button)findViewById(R.id.buttonSite);
        buttonMapa = (Button)findViewById(R.id.buttonMapa);
        buttonNavegacao = (Button)findViewById(R.id.buttonNavegar);
+
+       buttonTirarFoto.setOnClickListener(v -> {
+           Intent intent = new Intent(MainActivity.this,FotoActivity.class);
+           startActivity(intent);
+       });
 
        buttonNavegacao.setOnClickListener(v -> {
            Uri gmmIntentUri = Uri.parse("google.navigation:q=Avenida+general+carneiro+1427");
