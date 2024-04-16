@@ -6,6 +6,34 @@ public class Usuario {
     private String id;
     private String nome;
 
+    private String sobrenome;
+    private String foto;
+    private int anoNascimento;
+
+    public String getSobrenome() {
+        return sobrenome;
+    }
+
+    public void setSobrenome(String sobrenome) {
+        this.sobrenome = sobrenome;
+    }
+
+    public String getFoto() {
+        return foto;
+    }
+
+    public void setFoto(String foto) {
+        this.foto = foto;
+    }
+
+    public int getAnoNascimento() {
+        return anoNascimento;
+    }
+
+    public void setAnoNascimento(int anoNascimento) {
+        this.anoNascimento = anoNascimento;
+    }
+
     private static ArrayList<Usuario> usuarios;
     public static ArrayList<Usuario> getUsuarios(){
         usuarios = new ArrayList<>();

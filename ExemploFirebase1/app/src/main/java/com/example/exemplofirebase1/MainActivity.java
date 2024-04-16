@@ -5,7 +5,9 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.EditText;
 
+import com.example.exemplofirebase1.models.Usuario;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -21,53 +23,52 @@ import java.util.Map;
 
 public class MainActivity extends AppCompatActivity {
     private FirebaseFirestore db;
-    FloatingActionButton buttonAdd;
+    FloatingActionButton buttonSalvar;
+    Usuario usuario;
+    EditText txtNome,txtSobrenome, txtFoto,txtAno;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        txtNome = (EditText)findViewById(R.id.editTextNome);
+        txtSobrenome = (EditText)findViewById(R.id.editTextSobrenome);
+        txtAno = (EditText)findViewById(R.id.editTextAno);
+        txtFoto= (EditText)findViewById(R.id.editTextFoto);
+        buttonSalvar = (FloatingActionButton) findViewById(R.id.buttonSalvar);
+        usuario = new Usuario();
         db = FirebaseFirestore.getInstance();
-        buscarUsuarios();
-        buttonAdd = (FloatingActionButton)findViewById(R.id.buttonAdd);
-        buttonAdd.setOnClickListener(v -> {
-            // Create a new user with a first and last name
-            Map<String, Object> user = new HashMap<>();
-            user.put("nome", "Rafael");
-            user.put("sobrenome", "Moreno");
-            user.put("anoNascimento", 1985);
 
-            // Add a new document with a generated ID
-            db.collection("usuarios")
-                    .add(user)
-                    .addOnSuccessListener(new OnSuccessListener<DocumentReference>() {
-                        @Override
-                        public void onSuccess(DocumentReference documentReference) {
-                            Log.d("TAG", "DocumentSnapshot added with ID: " + documentReference.getId());
-                        }
-                    })
-                    .addOnFailureListener(new OnFailureListener() {
-                        @Override
-                        public void onFailure(@NonNull Exception e) {
-                            Log.w("TAG", "Error adding document", e);
-                        }
-                    });
+        if(getIntent().getExtras()!= null){
+            //passou parametro
+            usuario.setId(getIntent().getStringExtra("id"));
+            usuario.setNome(getIntent().getStringExtra("nome"));
+            usuario.setSobrenome(getIntent().getStringExtra("sobrenome"));
+            usuario.setFoto(getIntent().getStringExtra("foto"));
+            usuario.setAnoNascimento(getIntent()
+                                    .getIntExtra("anoNascimento",0));
+            txtNome.setText(usuario.getNome());
+            txtSobrenome.setText(usuario.getSobrenome());
+            txtAno.setText(usuario.getAnoNascimento() + "");
+            txtFoto.setText(usuario.getFoto());
+        }
+
+        buttonSalvar.setOnClickListener(v -> {
+            usuario.setAnoNascimento(Integer.parseInt(txtAno.getText().toString()));
+            usuario.setNome(txtNome.getText().toString());
+            usuario.setSobrenome(txtSobrenome.getText().toString());
+            usuario.setFoto(txtFoto.getText().toString());
+
+            if(getIntent().getExtras()!= null) {            //editar
+
+                db.collection("usuarios").document(usuario.getId()).set(usuario);
+
+            }else{
+                //inserir
+                db.collection("usuarios").add(usuario);
+            }
+            finish();
         });
+
     }
 
-    public void buscarUsuarios(){
-        db.collection("usuarios")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            for (QueryDocumentSnapshot document : task.getResult()) {
-                                Log.d("Usuario", document.getId() + " => " + document.getData());
-                            }
-                        } else {
-                            Log.w("Usuario", "Error getting documents.", task.getException());
-                        }
-                    }
-                });
-    }
 }

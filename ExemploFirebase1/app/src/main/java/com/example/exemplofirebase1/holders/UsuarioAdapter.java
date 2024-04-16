@@ -1,5 +1,12 @@
 package com.example.exemplofirebase1.holders;
 
+import android.app.AlertDialog;
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -10,15 +17,22 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.exemplofirebase1.MainActivity;
 import com.example.exemplofirebase1.R;
 import com.example.exemplofirebase1.models.Usuario;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 
 public class UsuarioAdapter extends RecyclerView.Adapter<UsuarioHolder>
 {
     private final ArrayList<Usuario> usuarios;
-
-    public UsuarioAdapter(ArrayList<Usuario> usuarios){
+    FirebaseFirestore db;
+    public UsuarioAdapter(ArrayList<Usuario> usuarios,FirebaseFirestore db)
+    {
         this.usuarios = usuarios;
+        this.db = db;
     }
 
     @NonNull
@@ -32,14 +46,60 @@ public class UsuarioAdapter extends RecyclerView.Adapter<UsuarioHolder>
     public void onBindViewHolder(@NonNull UsuarioHolder holder, int position) {
         Usuario usuario = usuarios.get(position);
         holder.textNome.setText(usuario.getNome());
+
+        new Thread(() -> {
+            URL url = null;
+            try {
+                url = new URL(usuario.getFoto());
+                final Bitmap bmp;
+                bmp = BitmapFactory
+                        .decodeStream(url.openConnection()
+                                                .getInputStream());
+                new Handler(Looper.getMainLooper()).post(() ->
+                {
+                    holder.foto.setImageBitmap(bmp);
+                });
+            }
+            catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }).start();
+
         holder.buttonExcluir.setOnClickListener(v -> {
-            usuarios.remove(position);
-            notifyItemRemoved(position);
-            notifyItemRangeChanged(position,usuarios.size());
+            new AlertDialog.Builder(v.getContext())
+                    .setTitle("Atenção")
+                    .setMessage("Deseja excluir esse item?")
+                    .setIcon(R.mipmap.ic_launcher)
+                    .setNegativeButton("Não",null)
+                    .setPositiveButton("Sim",(dialog, which) -> {
+                        db.collection("usuarios").document(usuario.getId())
+                                .delete()
+                                .addOnSuccessListener(
+                                        new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        usuarios.remove(position);
+                                        notifyItemRemoved(position);
+                                        notifyItemRangeChanged(position,usuarios.size());
+                                    }
+                                })
+                                .addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Log.w("TAG", "Erro ao excluir", e);
+                                    }
+                                });
+                    })
+                    .show();
         });
         holder.buttonEditar.setOnClickListener(v -> {
-            Toast.makeText(v.getContext(), "Clicou editar",
-                    Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(v.getContext(),MainActivity.class);
+            intent.putExtra("id",usuario.getId());
+            intent.putExtra("nome",usuario.getNome());
+            intent.putExtra("foto",usuario.getFoto());
+            intent.putExtra("sobrenome",usuario.getSobrenome());
+            intent.putExtra("anoNascimento",usuario.getAnoNascimento());
+            v.getContext().startActivity(intent);
         });
     }
 
