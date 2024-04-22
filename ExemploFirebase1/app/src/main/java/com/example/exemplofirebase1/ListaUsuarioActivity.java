@@ -40,7 +40,6 @@ public class ListaUsuarioActivity extends AppCompatActivity {
             Intent i = new Intent(ListaUsuarioActivity.this,MainActivity.class);
             startActivity(i);
         });
-        getUsuariosFireStore();
 
     }
 
