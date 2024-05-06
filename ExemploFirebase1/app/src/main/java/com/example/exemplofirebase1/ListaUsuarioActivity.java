@@ -10,12 +10,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.widget.Button;
+import android.widget.TextView;
 
 import com.example.exemplofirebase1.holders.UsuarioAdapter;
 import com.example.exemplofirebase1.models.Usuario;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
@@ -28,10 +32,40 @@ public class ListaUsuarioActivity extends AppCompatActivity {
     public ArrayList<Usuario>usuarios;
     FirebaseFirestore db;
     FloatingActionButton btnadd;
+
+    TextView txtUsuario;
+    Button btnLogout;
+    FirebaseUser user;
+    FirebaseAuth auth;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_lista_usuario);
+
+        auth = FirebaseAuth.getInstance();
+        btnLogout = (Button) findViewById(R.id.buttonLogout);
+        txtUsuario = (TextView) findViewById(R.id.textViewUsuario);
+        user = auth.getCurrentUser();
+        if(user == null){
+            Intent i = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(i);
+            finish();
+        }else{
+            txtUsuario.setText(user.getEmail());
+        }
+
+        btnLogout.setOnClickListener(v -> {
+            FirebaseAuth.getInstance().signOut();
+            Intent i = new Intent(getApplicationContext(), LoginActivity.class);
+            startActivity(i);
+            finish();
+        });
+
+
+
+
         db = FirebaseFirestore.getInstance();
         usuarios = new ArrayList<>();
         recyclerView = (RecyclerView) findViewById(R.id.recyclerViewUsuario);
